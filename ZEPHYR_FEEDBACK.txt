@@ -11,7 +11,7 @@ ABOUT THE TASK SETUP
 --------------------
 - Mini app (remote): this repository (ZephyrTest), Module Federation over Metro,
   deployed with Zephyr's default Cloud integration (bundle-mf-remote).
-- Host: GarageFixMobile — a real production React Native app already published
+- Host: MyGarage — a real production React Native app already published
   on the stores. Integrated with Zephyr Metro + Module Federation to load
   miniApp/example from the Zephyr "staging" environment at runtime.
 
@@ -29,7 +29,7 @@ WHAT WENT WELL
    at a stable "staging" URL and promoting versions in the UI matches how you'd
    ship feature remotes without store releases.
 
-4. Using a real production host (GarageFix) made the exercise more meaningful
+4. Using a real production host (MyGarage) made the exercise more meaningful
    than a greenfield sample alone — it stresses shared React / RN versions and
    coexistence with existing tooling (e.g. Sentry Metro wrapper).
 
@@ -41,9 +41,9 @@ host was a bit confusing at first. After that, learning was quick — the
 documentation is clear and was enough to get a solid end-to-end flow.
 
 
-HOW I’D USE ZEPHYR IN A REAL PROJECT (GarageFix)
+HOW I’D USE ZEPHYR IN A REAL PROJECT (MyGarage)
 ------------------------------------------------
-- Keep GarageFixMobile as the store-released host (auth, navigation, IAP, etc.).
+- Keep MyGarage as the store-released host (auth, navigation, IAP, etc.).
 - Ship isolated features as remotes (support tools, experiments, seasonal UI).
 - staging for QA (promote manually or via Tag on main); production pinned or
   promoted only after approval.
