@@ -1,0 +1,104 @@
+{
+  "id": "miniApp",
+  "name": "miniApp",
+  "metaData": {
+    "name": "miniApp",
+    "type": "app",
+    "buildInfo": {
+      "buildVersion": "1.0.0",
+      "buildName": "miniApp",
+      "hash": "a8ce7d5dca7a78f479eac2e4b0c3196e434da7717411d5e99efc78ff1a0858a8"
+    },
+    "remoteEntry": {
+      "name": "miniApp.bundle",
+      "path": "",
+      "type": "global"
+    },
+    "types": {
+      "path": "",
+      "name": "",
+      "api": "",
+      "zip": ""
+    },
+    "globalName": "miniApp",
+    "pluginVersion": "",
+    "publicPath": "auto"
+  },
+  "exposes": [
+    {
+      "id": "miniApp:example",
+      "name": "example",
+      "path": "./example",
+      "assets": {
+        "js": {
+          "sync": [
+            "./src/example.tsx"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      },
+      "hash": "d363cab172c063b9a396a5a8af98c3b803a89aba1549c2cb411ba628c573bb14"
+    }
+  ],
+  "remotes": [],
+  "shared": [
+    {
+      "id": "react",
+      "name": "react",
+      "version": "19.1.0",
+      "requiredVersion": "19.1.0",
+      "singleton": true,
+      "hash": "",
+      "assets": {
+        "js": {
+          "sync": [],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      }
+    },
+    {
+      "id": "react-native",
+      "name": "react-native",
+      "version": "0.80.0",
+      "requiredVersion": "0.80.0",
+      "singleton": true,
+      "hash": "",
+      "assets": {
+        "js": {
+          "sync": [],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      }
+    },
+    {
+      "id": "react-native/Libraries/Network/RCTNetworking",
+      "name": "react-native/Libraries/Network/RCTNetworking",
+      "version": "0.80.0",
+      "requiredVersion": "0.80.0",
+      "singleton": true,
+      "hash": "",
+      "assets": {
+        "js": {
+          "sync": [],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      }
+    }
+  ]
+}

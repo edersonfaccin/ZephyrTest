@@ -1,97 +1,175 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# ZephyrTest — React Native + Metro + Zephyr Cloud
 
-# Getting Started
+Technical task POC: a **Module Federation mini app** built with React Native Metro and deployed through **Zephyr Cloud** (default Cloud integration only).
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+This repository is the **remote (mini app)**. It is consumed at runtime by a **host** application — in this exercise, **GarageFixMobile**, a production React Native app already on the App Store / Play Store, configured with Zephyr Metro + Module Federation.
 
-## Step 1: Start Metro
+Docs followed: [Zephyr Metro bundler guide](https://docs.zephyr-cloud.io/bundlers/metro)
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+---
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Architecture
 
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+```
+┌─────────────────────────┐         ┌──────────────────────────────────┐
+│  Host (GarageFixMobile) │  load   │  Remote (this repo — ZephyrTest) │
+│  name: hostApp          │ ──────► │  name: miniApp                   │
+│  React Native + Metro   │         │  exposes: ./example              │
+│  withZephyr + MF        │         │  deployed to Zephyr Cloud        │
+└─────────────────────────┘         └──────────────────────────────────┘
+                                              │
+                                              ▼
+                                   Zephyr environment: staging
+                                   Stable URL (mf-manifest.json)
 ```
 
-## Step 2: Build and run your app
+- **Mini app (`miniApp`)**: builds a federated remote (`bundle-mf-remote`) and uploads assets to Zephyr.
+- **Host (`hostApp`)**: declares the remote in Metro and loads it with `React.lazy(() => import('miniApp/example'))`.
+- **Shared deps**: `react` and `react-native` as singletons so host and remote share one runtime.
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+---
 
-### Android
+## How Zephyr sits in the React Native / Metro pipeline
 
-```sh
-# Using npm
-npm run android
+Metro remains the bundler. Zephyr does **not** replace Metro; it plugs into the Metro + Module Federation flow:
 
-# OR using Yarn
-yarn android
+1. **Build (Metro + `@module-federation/metro`)**  
+   Metro produces the host bundle and/or the remote container (`miniApp.bundle`, exposed modules, `mf-manifest.json`).
+
+2. **Zephyr plugin (`zephyr-metro-plugin` / `withZephyr`)**  
+   During that bundling step, Zephyr:
+   - captures federation metadata and assets
+   - uploads them to Zephyr Cloud (default edge deployment)
+   - versioning goes to the dashboard (e.g. `0.0.1-main.<user>.N`)
+
+3. **Runtime**  
+   The host fetches `mf-manifest.json` from a Zephyr URL (here: the **staging** environment URL), then loads remote JS over the network — without an App Store release for that remote change.
+
+| Layer | Responsibility |
+| --- | --- |
+| Metro | Bundle JS, resolve modules, HMR in local dev |
+| Module Federation | Split host vs remotes, share singletons |
+| Zephyr | Host versions, environments/tags, serve remotes from the edge |
+
+In short: **Metro builds → Zephyr publishes & serves → host loads remotes at runtime.**
+
+---
+
+## How I’d use this in a real project (GarageFix)
+
+GarageFix already ships as a native host. A practical layout:
+
+| Piece | Role |
+| --- | --- |
+| GarageFixMobile (host) | Shell, auth, navigation, store releases |
+| Feature remotes (like this mini app) | Screens/modules that can ship OTA via Zephyr |
+| Environments | `staging` for QA, `production` locked/promoted deliberately |
+
+**Workflow used in this POC:**
+
+1. Change and bundle the mini app (`yarn bundle:ios` / `yarn bundle:android`).
+2. In Zephyr dashboard → environment **`staging`** → point **Value** to the new version → Save.
+3. Reload the host app — **no host code change**, no store submission for the remote update.
+
+That matches a real team setup: host rare store releases; product features iterate faster as remotes.
+
+---
+
+## Mini app setup (this repo)
+
+### Dependencies
+
+```bash
+yarn add --dev \
+  zephyr-metro-plugin \
+  @module-federation/metro \
+  @module-federation/metro-plugin-rnc-cli \
+  @module-federation/runtime
 ```
 
-### iOS
+### Metro (`metro.config.js`)
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+- `name: 'miniApp'`
+- `exposes: { './example': './src/example.tsx' }`
+- Shared `react` / `react-native` (aligned with host: `19.2.3` / `0.84.1`)
+- `withZephyr()` + `withModuleFederation(...)`
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+### Deploy to Zephyr Cloud
 
-```sh
-bundle install
+```bash
+yarn bundle:ios
+# and/or
+yarn bundle:android
 ```
 
-Then, and every time you update your native dependencies, run:
+Requires login to [Zephyr Cloud](https://app.zephyr-cloud.io/). After a successful bundle, a new version appears in the dashboard.
 
-```sh
-bundle exec pod install
+Optional: target an environment at build time:
+
+```bash
+ZE_ENV=staging yarn bundle:ios
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+### Staging environment
 
-```sh
-# Using npm
-npm run ios
+- Environment name: **`staging`**
+- Stable URL used by the host:  
+  `https://staging-zephyrtest-zephyrtest-edersonfaccin-ze.zephyrcloud.app/mf-manifest.json`
+- Channel: **Version** (promote manually after each deploy) — can be switched to **Tag** for automatic tracking of `main` builds.
 
-# OR using Yarn
-yarn ios
-```
+---
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## Host side (GarageFixMobile)
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+Configured separately in the host repo:
 
-## Step 3: Modify your app
+- `withZephyr` + `withModuleFederation` in `metro.config.js`
+- Remote:
 
-Now that you have successfully run the app, let's make changes!
+  ```js
+  miniApp: 'miniApp@https://staging-zephyrtest-zephyrtest-edersonfaccin-ze.zephyrcloud.app/mf-manifest.json'
+  ```
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+- `package.json`:
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+  ```json
+  "zephyr:dependencies": {
+    "miniApp": "zephyr:ZephyrTest.ZephyrTest.edersonfaccin@staging"
+  }
+  ```
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+- UI load: `React.lazy(() => import('miniApp/example'))` + `Suspense`
 
-## Congratulations! :tada:
+**Note:** Local Metro uses the URL in `remotes`. `zephyr:dependencies` is especially useful when the host itself is also built/deployed with Zephyr. For day-to-day host development against cloud remotes, point `remotes` at the **environment** URL (stable), not a version URL.
 
-You've successfully run and modified your React Native App. :partying_face:
+---
 
-### Now what?
+## Demo update flow
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+1. Edit `src/example.tsx` in this repo.
+2. `yarn bundle:ios` (new version in Zephyr).
+3. Dashboard → **Environments** → **staging** → select the new version → Save.
+4. Reload GarageFix host → updated remote content.
 
-# Troubleshooting
+No App Store / Play Store release required for that remote change.
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+---
 
-# Learn More
+## Screen recording
 
-To learn more about React Native, take a look at the following resources:
+A short recording of the deployment flow and the host running on a simulator/device will be shared with the submission email.
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+---
+
+## Feedback on DX and documentation
+
+See [`ZEPHYR_FEEDBACK.txt`](./ZEPHYR_FEEDBACK.txt) (also intended to paste into the submission email).
+
+
+## About my app GarageFix
+
+# Android
+https://play.google.com/store/apps/details?id=com.carangomobile
+
+# IOS
+https://apps.apple.com/us/app/my-garage-cars-expenses/id1554131935

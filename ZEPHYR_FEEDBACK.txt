@@ -1,0 +1,60 @@
+Subject: Zephyr technical task — notes / DX feedback
+Attachment or body: can be sent by email as plain text
+
+================================================================================
+DX & DOCUMENTATION FEEDBACK
+React Native + Metro + Zephyr Cloud technical task
+Ederson Faccin Frasson
+================================================================================
+
+ABOUT THE TASK SETUP
+--------------------
+- Mini app (remote): this repository (ZephyrTest), Module Federation over Metro,
+  deployed with Zephyr's default Cloud integration (bundle-mf-remote).
+- Host: GarageFixMobile — a real production React Native app already published
+  on the stores. Integrated with Zephyr Metro + Module Federation to load
+  miniApp/example from the Zephyr "staging" environment at runtime.
+
+
+WHAT WENT WELL
+--------------
+1. Metro guide is enough to get to a working first deploy. The split between
+   host and mini app configs (eager shared on host, import:false on remote) is
+   clear once you follow the tutorial end-to-end.
+
+2. Dashboard versioning is easy to understand: each bundle creates an immutable
+   version (e.g. 0.0.1-main.<user>.N) marked Available.
+
+3. Environments are a strong product concept for a real app. Pointing the host
+   at a stable "staging" URL and promoting versions in the UI matches how you'd
+   ship feature remotes without store releases.
+
+4. Using a real production host (GarageFix) made the exercise more meaningful
+   than a greenfield sample alone — it stresses shared React / RN versions and
+   coexistence with existing tooling (e.g. Sentry Metro wrapper).
+
+
+WHAT WAS CONFUSING / COULD BE CLEARER IN THE DOCS
+-------------------------------------------------
+Creating environments and avoiding a hard-coded / mocked remote version in the
+host was a bit confusing at first. After that, learning was quick — the
+documentation is clear and was enough to get a solid end-to-end flow.
+
+
+HOW I’D USE ZEPHYR IN A REAL PROJECT (GarageFix)
+------------------------------------------------
+- Keep GarageFixMobile as the store-released host (auth, navigation, IAP, etc.).
+- Ship isolated features as remotes (support tools, experiments, seasonal UI).
+- staging for QA (promote manually or via Tag on main); production pinned or
+  promoted only after approval.
+- Align shared react / react-native versions strictly between host and remotes.
+
+
+SUBMISSION ARTIFACTS
+--------------------
+- Public GitHub repo: this project (ZephyrTest) + host integration notes in README
+- Screen recording: to be attached / linked separately (deploy flow + simulator)
+- This file: DX / documentation feedback for email
+
+
+Thank you for the task — happy to walk through the demo on a follow-up call.
