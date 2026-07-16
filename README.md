@@ -2,7 +2,7 @@
 
 Technical task POC: a **Module Federation mini app** built with React Native Metro and deployed through **Zephyr Cloud** (default Cloud integration only).
 
-This repository is the **remote (mini app)**. It is consumed at runtime by a **host** application — in this exercise, **GarageFixMobile**, a production React Native app already on the App Store / Play Store, configured with Zephyr Metro + Module Federation.
+This repository is the **remote (mini app)**. It is consumed at runtime by a **host** application — in this exercise, **MyGarage**, a production React Native app already on the App Store / Play Store, configured with Zephyr Metro + Module Federation.
 
 Docs followed: [Zephyr Metro bundler guide](https://docs.zephyr-cloud.io/bundlers/metro)
 
@@ -12,7 +12,7 @@ Docs followed: [Zephyr Metro bundler guide](https://docs.zephyr-cloud.io/bundler
 
 ```
 ┌─────────────────────────┐         ┌──────────────────────────────────┐
-│  Host (GarageFixMobile) │  load   │  Remote (this repo — ZephyrTest) │
+│  Host (MyGarage)        │  load   │  Remote (this repo — ZephyrTest) │
 │  name: hostApp          │ ──────► │  name: miniApp                   │
 │  React Native + Metro   │         │  exposes: ./example              │
 │  withZephyr + MF        │         │  deployed to Zephyr Cloud        │
@@ -55,13 +55,13 @@ In short: **Metro builds → Zephyr publishes & serves → host loads remotes at
 
 ---
 
-## How I’d use this in a real project (GarageFix)
+## How I’d use this in a real project (MyGarage)
 
-GarageFix already ships as a native host. A practical layout:
+MyGarage already ships as a native host. A practical layout:
 
 | Piece | Role |
 | --- | --- |
-| GarageFixMobile (host) | Shell, auth, navigation, store releases |
+| MyGarage (host) | Shell, auth, navigation, store releases |
 | Feature remotes (like this mini app) | Screens/modules that can ship OTA via Zephyr |
 | Environments | `staging` for QA, `production` locked/promoted deliberately |
 
@@ -119,7 +119,7 @@ ZE_ENV=staging yarn bundle:ios
 
 ---
 
-## Host side (GarageFixMobile)
+## Host side (MyGarage)
 
 Configured separately in the host repo:
 
@@ -149,7 +149,7 @@ Configured separately in the host repo:
 1. Edit `src/example.tsx` in this repo.
 2. `yarn bundle:ios` (new version in Zephyr).
 3. Dashboard → **Environments** → **staging** → select the new version → Save.
-4. Reload GarageFix host → updated remote content.
+4. Reload MyGarage host → updated remote content.
 
 No App Store / Play Store release required for that remote change.
 
@@ -166,7 +166,7 @@ A short recording of the deployment flow and the host running on a simulator/dev
 See [`ZEPHYR_FEEDBACK.txt`](./ZEPHYR_FEEDBACK.txt) (also intended to paste into the submission email).
 
 
-## About my app GarageFix
+## About my app MyGarage
 
 # Android
 https://play.google.com/store/apps/details?id=com.carangomobile
